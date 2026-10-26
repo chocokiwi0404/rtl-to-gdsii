@@ -100,8 +100,6 @@ The assignment selects `A = last roll-number digit + 5`. Using **Kavya Pandey's 
 
 In the replay with an explicit nanosecond timescale, the operands are applied at **2076 ns**, captured at **2085 ns (E1)**, and produce `p = 42` at **2095 ns (E2)**. The checker samples at 2096 ns. The report annotates these two edges on the waveform; the original screenshot below uses seconds because the delivered testbench lacks a timescale directive.
 
-![GTKWave waveform for the multiplier, including the 6 × 7 example](report/assets/rtl-waveform.jpeg)
-
 ## Repository map
 
 The required submission files keep the assignment's exact names. Comments explain what to read or expect from each one.
@@ -193,11 +191,6 @@ FAIL: 256 vectors checked, 95 errors
 
 Logs are written to `report/evidence/rtl-{original,normalized,fault}.log`. To inspect the waveform with nanosecond units and run the additional full-adder, streaming, and asynchronous-reset checks:
 
-```bash
-gtkwave report/build/verification/normalized/mult.vcd
-bash report/evidence/audit-rtl.sh
-```
-
 ### 3. Part B — Synthesize and simulate the mapped netlist
 
 ```bash
@@ -225,8 +218,6 @@ iverilog -g2012 -DFUNCTIONAL '-DUNIT_DELAY=#1' -o gls \
   synth/mult_array_netlist.v
 vvp gls
 ```
-
-The supplied [gate-level simulation screenshot](report/assets/gate-pass.jpeg) reports `PASS: 256 vectors checked, 0 errors`. This checks functional behavior after mapping; static timing analysis checks whether the circuit meets a clock target.
 
 ### 4. Part C — Find the timing limit
 
@@ -306,10 +297,9 @@ The assignment also permits `python3 -m librelane config.json`. LibreLane runs s
 | 5 | 6.0 ns | Failed timing |
 | 6 | 6.5 ns | Passed |
 
-This history comes from the supplied [trial notes](report/assets/physical-trial-notes.jpg); individual attempt logs and failing slacks are unavailable. The final configuration and metrics support the 6.5 ns result.
+Individual attempt logs and failing slacks are unavailable. The final configuration and metrics support the 6.5 ns result.
 
-After a successful run, copy `final/metrics.json` and the final GDS from `pnr/runs/<date-time>/` to **`pnr/metrics.json`** and **`pnr/mult_array.gds`**. Locate the actual GDS filename in that run; the original run ID and source path are unavailable here. **Do not commit `runs/`**; the root `.gitignore` excludes it.
-
+After a successful run, copy `final/metrics.json` and the final GDS from `pnr/runs/<date-time>/` to **`pnr/metrics.json`** and **`pnr/mult_array.gds`**. Locate the actual GDS filename in that run; the original run ID and source path are unavailable here.
 Still inside `pnr/`, open the layout:
 
 ```bash
@@ -367,7 +357,7 @@ _109_ (a_reg[1], dfrtp_1)
   → _107_ (p[7], dfrtp_1)
 ```
 
-The period boundary is approximately `0.396 ns clock-to-Q + 2.456 ns logic + 0.131 ns setup = 2.983 ns`. The eight mapped logic cells cross functions from **seven structural full adders**; the [functional mapping](report/evidence/critical-path-map.md) explains the merged boundaries. The assignment's `2N = 8` full-adder-delay estimate gives the expected scale, rather than a one-to-one count of mapped gates. The earlier `rst_n` recovery check in the report is a separate asynchronous path.
+The period boundary is approximately `0.396 ns clock-to-Q + 2.456 ns logic + 0.131 ns setup = 2.983 ns`. The eight mapped logic cells cross functions from **seven structural full adders**. The assignment's `2N = 8` full-adder-delay estimate gives the expected scale, rather than a one-to-one count of mapped gates. The earlier `rst_n` recovery check in the report is a separate asynchronous path.
 
 ### Part D · Routed layout and signoff
 
