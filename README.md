@@ -408,12 +408,6 @@ The assignment's post-route calculation gives `1000 / (6.5 − 0.499256) = 166.6
 
 The JSON's `design__instance__count__stdcell = 336` subtotal includes taps and excludes 4,486 filler/decap instances. Removing taps as well leaves **91** logic, register, and buffer instances. LibreLane also remaps and resizes logic, so the physical design differs from standalone synthesis beyond inserted support cells.
 
-**Whole die**
 
-![Whole-die KLayout view of the final 150 × 150 µm multiplier layout](report/assets/layout-whole.jpeg)
-
-**Cell rows and routing detail**
-
-![Zoomed KLayout view showing standard-cell rows and routed metal](report/assets/layout-detail.jpeg)
 
 DRC verifies geometry against fabrication rules such as spacing, width, and enclosure. LVS compares the circuit extracted from the layout against the intended netlist. Both report zero errors here. The saved metrics still list **11 maximum-slew violations at slow corners**; positive setup/hold slack and zero DRC/LVS errors do not establish that every electrical check is clean.
