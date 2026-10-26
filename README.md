@@ -15,7 +15,7 @@ This project implements an unsigned **4-bit × 4-bit multiplier** in Verilog and
 
 The timing estimate is a saved near-zero-slack boundary. The final physical run uses a 6.5 ns clock and has positive setup slack; remaining evidence and electrical limitations are explained below.
 
-**Explore:** [Design and code](#how-the-multiplier-works) · [Repository map](#repository-map) · [Run the flow](#run-the-flow-in-assignment-order) · [Results](#results-and-what-they-mean) · [Report and assignment coverage](#report-and-assignment-coverage)
+**Explore:** [Design and code](#how-the-multiplier-works) · [Repository map](#repository-map) · [Run the flow](#run-the-flow-in-assignment-order) · [Results](#results-and-what-they-mean)
 
 ## What is implemented
 
@@ -129,21 +129,8 @@ The required submission files keep the assignment's exact names. Comments explai
     └── report.pdf                   Results, annotated figures, and Q1–Q6 answers
 ```
 
-Additional material is retained alongside this required tree:
 
-| Location | Purpose |
-|---|---|
-| [`RTL_to_GDS doc.pdf`](<RTL_to_GDS doc.pdf>) | Original assignment: architecture, commands, tables, and deliverables |
-| [`report/README.md`](report/README.md) | Report build instructions and evidence details |
-| [`report/main.tex`](report/main.tex), [`sections/`](report/sections/), [`figures/`](report/figures/) | Editable LaTeX report and architecture diagram |
-| [`report/assets/`](report/assets/) | Supplied screenshots under readable filenames |
-| [`report/evidence/`](report/evidence/) | Replay scripts/logs, result extraction, and original artifact snapshots |
-| [`report/REQUIREMENTS.md`](report/REQUIREMENTS.md), [`VALIDATION.md`](report/VALIDATION.md) | Assignment coverage and report validation record |
-| [`AUDIT.md`](AUDIT.md) | Submission audit and outstanding issues |
-| [`pictures and results/`](<pictures and results/>) | Original supplied pictures |
-| [`pnr/mult_array.klayout.gds`](pnr/mult_array.klayout.gds) | Retained original GDS; byte-identical to `mult_array.gds` |
-
-**Suggested reading order:** `full_adder.v` → `mult_array.v` → `tb_mult.v` → `synth.tcl` and its outputs → `sta.tcl` and its report → `config.json` and `metrics.json`.
+**Flow:** `full_adder.v` → `mult_array.v` → `tb_mult.v` → `synth.tcl` and its outputs → `sta.tcl` and its report → `config.json` and `metrics.json`.
 
 ## Run the flow in assignment order
 
@@ -430,55 +417,3 @@ The JSON's `design__instance__count__stdcell = 336` subtotal includes taps and e
 ![Zoomed KLayout view showing standard-cell rows and routed metal](report/assets/layout-detail.jpeg)
 
 DRC verifies geometry against fabrication rules such as spacing, width, and enclosure. LVS compares the circuit extracted from the layout against the intended netlist. Both report zero errors here. The saved metrics still list **11 maximum-slew violations at slow corners**; positive setup/hold slack and zero DRC/LVS errors do not establish that every electrical check is clean.
-
-## Report and assignment coverage
-
-Read the complete **[project report](report/report.pdf)** for the annotated waveform, full architecture diagram, results tables, layout screenshots, and all six report answers. The assignment's requirements map to these files:
-
-| Required item | Where to find it |
-|---|---|
-| Team identities, ordered commands, and every physical clock attempt | This README |
-| Part A RTL, exhaustive checker, PASS and deliberate-fault FAIL | `rtl/`, `tb/`, and `report/evidence/rtl-*.log` |
-| Worked roll-number example, waveform with marked latency, full block diagram | Report Part A; example and original waveform above |
-| Part B script, netlist, statistics, table, and netlist PASS | `synth/`, results above, and report Part B |
-| Part C script, timing report, table, critical endpoints and ordered cells | `sta/`, results above, and report Part C |
-| Part D configuration, metrics, GDS, attempts, table, and two layout screenshots | `pnr/`, results above, and report Part D |
-| Answers to Questions 1–6 | Report section “Answers to the report questions” |
-| Detailed coverage and remaining gaps | [`report/REQUIREMENTS.md`](report/REQUIREMENTS.md) and [`AUDIT.md`](AUDIT.md) |
-
-Questions 1–5 are also explained above: mapping changes the gate count; the critical path runs from `a_reg[1]` to `p[7]`; registers occupy 50.24% of synthesized area; routing, clock distribution, remapping, and corner choice affect frequency; DRC and LVS check geometry and connectivity respectively. For **Question 6**, the assignment's scaling formulas predict that an 8-bit version would need **64 AND operations** (`N²`) and **56 full adders** (`N(N−1)`), with roughly **16 full-adder delays** (`2N`) on its longest path. That is four times the AND count, about 4.67 times the adder count, and about twice the delay, assuming unchanged gate delay and loading. The implemented design remains 4-bit.
-
-### Rebuild the report and check the saved results
-
-From the repository root, TeX Live with `latexmk` builds the PDF:
-
-```bash
-bash report/build-report.sh
-```
-
-This compiles `report/main.tex` and refreshes `report/report.pdf`. To recalculate cell counts, area fractions, and frequencies from the supplied artifacts using Python's standard library:
-
-```bash
-python3 report/evidence/extract_results.py
-```
-
-The extractor checks the 70-cell netlist and 4,822-cell GDS counts against the saved data and writes `report/evidence/extracted-results.json`. See [`report/README.md`](report/README.md) for the standalone source package and further evidence details.
-
-### Evidence limits and submission notes
-
-The original and explicit-nanosecond RTL replays, deliberate-fault experiment, and streaming/reset audit are reproducible with the included scripts. Synthesis, gate-level simulation, standalone STA, and place and route rely on supplied artifacts/screenshots until rerun with their tools and PDK. Exact original environment revisions, the full command transcript, the first 10 ns STA log, and individual physical-run logs are unavailable. Supplied terminal screenshots show a Nix-shell prompt; the setup above follows the assignment's Docker recommendation.
-
-The original testbench's missing timescale, the rounded `VIOLATED` STA boundary, and slow-corner slew violations remain documented issues. The assignment also expects 4–5 meaningful commits over the project period and review/understanding of submitted work; generated artifacts cannot establish that history. Before submitting, ensure the required files and linked assets are included in Git and review the outstanding items in the submission audit.
-
-## Troubleshooting
-
-| Symptom | Check |
-|---|---|
-| `Unknown module full_adder` | Include `rtl/full_adder.v` alongside `rtl/mult_array.v` when compiling or synthesizing. |
-| RTL mismatches | Check each row's carry wiring and wait for both capture edges before comparing after register updates. |
-| Waveform time appears in seconds | Use the explicit-timescale replay described in Part A. |
-| Liberty file not found | Check `PDK_ROOT`, the `sky130A` path, and the selected PDK. |
-| RTL passes but gate-level simulation fails | Include both SKY130 model files and the functional-model defines; verify reset and clock units. |
-| LibreLane fails setup timing | Increase `CLOCK_PERIOD` by 0.5 ns and record the new attempt. |
-| Floorplan or power-grid failure | Check `FP_SIZING = "absolute"` and `DIE_AREA = [0, 0, 150, 150]`. |
-| Container flow is slow or crashes | Check available disk space, Docker RAM, and CPU allocation. |
